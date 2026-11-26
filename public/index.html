@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Bites | Smart Canteen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" data-action="home"><span class="brand-mark">✦</span> CAMPUS <b>BITES</b></a>
+    <div class="top-note"><span class="live-dot"></span> Fresh food. Zero queue.</div>
+    <div class="top-actions">
+      <button class="nav-btn" type="button" data-action="show-orders">My orders</button>
+      <button class="cart-shortcut" type="button" data-action="scroll-cart">Your cart <span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <div id="apiError" class="api-error hidden">
+    <div><b>Can't reach the Campus Bites server.</b><br>Start it with <code>npm start</code> in the project folder and open <code>http://localhost:3000</code> (not Live Server or a double-clicked file).</div>
+    <button class="primary-btn" type="button" data-action="retry">Try again</button>
+  </div>
+
+  <main>
+    <section id="homeView" class="home-view">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">THE CAMPUS FOOD EXPERIENCE</p>
+          <h1>Good food.<br><em>Great breaks.</em></h1>
+          <p class="hero-sub">Skip the queue and order your favourites from anywhere on campus.</p>
+          <button class="primary-btn" type="button" data-action="explore">Explore the counters <span>↘</span></button>
+        </div>
+        <div class="hero-art">
+          <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+          <div class="hero-food">🥪</div><span class="float-chip chip-one">MADE FRESH</span><span class="float-chip chip-two">✦ YOUR BREAK, UPGRADED</span>
+        </div>
+        <div class="hero-bottom"><span>01 / 03</span><span>ORDER • PICK UP • ENJOY</span></div>
+      </div>
+
+      <section id="outlets" class="outlets-section">
+        <div class="section-heading"><div><p class="eyebrow">PICK YOUR MOOD</p><h2>Three counters.<br><em>Endless cravings.</em></h2></div><p class="muted">Choose a counter to explore its menu<br>and build your perfect order.</p></div>
+        <div class="outlet-grid">
+          <button class="outlet-card grains" type="button" data-action="open-outlet" data-outlet="grains">
+            <span class="card-number">01 / TERRACOTTA</span><span class="outlet-emoji">🍲</span><span class="card-arrow">↗</span>
+            <span class="outlet-name">Grains &amp;<br>Gossips</span><span class="outlet-desc">Comfort food, conversations &amp; more.</span><span class="card-cta">EXPLORE MENU →</span>
+          </button>
+          <button class="outlet-card tummy" type="button" data-action="open-outlet" data-outlet="tummy">
+            <span class="card-number">02 / FRESH GREEN</span><span class="outlet-emoji">🥞</span><span class="card-arrow">↗</span>
+            <span class="outlet-name">Tummy<br>Trails</span><span class="outlet-desc">South Indian classics made with love.</span><span class="card-cta">EXPLORE MENU →</span>
+          </button>
+          <button class="outlet-card truck" type="button" data-action="open-outlet" data-outlet="truck">
+            <span class="card-number">03 / BLACK &amp; GOLD</span><span class="outlet-emoji">🍜</span><span class="card-arrow">↗</span>
+            <span class="outlet-name">Food<br>Truck</span><span class="outlet-desc">Big flavours. Street-food energy.</span><span class="card-cta">EXPLORE MENU →</span>
+          </button>
+        </div>
+      </section>
+      <footer class="site-footer"><span>© 2026 CAMPUS BITES</span><span>MADE FOR THE CAMPUS CROWD ✦</span></footer>
+    </section>
+
+    <section id="shopView" class="shop-view hidden">
+      <button class="back-link" type="button" data-action="home">← All counters</button>
+      <div class="shop-hero" id="shopHero">
+        <div><p class="eyebrow" id="shopEyebrow"></p><h1 id="shopTitle"></h1><p id="shopSubtitle"></p></div>
+        <div class="shop-hero-art" id="shopHeroArt"></div>
+      </div>
+      <div class="shop-layout">
+        <section class="menu-panel">
+          <div class="menu-heading"><div><p class="eyebrow">WHAT ARE YOU CRAVING?</p><h2>Explore the menu</h2></div><input id="searchBox" class="search-box" placeholder="Search dishes..." /></div>
+          <div id="categoryTabs" class="category-tabs"></div>
+          <div id="menuGrid" class="menu-grid"></div>
+        </section>
+        <aside class="cart-panel" id="cartPanel">
+          <div class="cart-title"><div><p class="eyebrow">YOUR SELECTION</p><h2>Your cart <span id="cartPanelCount">(0)</span></h2></div><button class="text-btn" type="button" data-action="clear-cart">Clear all</button></div>
+          <div id="cartItems" class="cart-items"></div>
+          <div class="cart-options">
+            <label class="field-label">Order type</label>
+            <div class="segmented"><button type="button" class="selected" data-action="order-type" data-type="Dine-in">Dine-in</button><button type="button" data-action="order-type" data-type="Takeaway">Takeaway</button></div>
+            <label class="field-label extras-label">Add extras <span>(per order)</span></label>
+            <div class="extras-grid" id="extrasGrid"></div>
+          </div>
+          <div class="bill">
+            <div><span>Items total</span><b id="itemsTotal">₹0</b></div>
+            <div><span>Extras</span><b id="extrasTotal">₹0</b></div>
+            <div class="grand-total"><span>Grand total</span><strong id="grandTotal">₹0</strong></div>
+          </div>
+          <button class="checkout-btn" type="button" data-action="checkout">Continue to checkout <span>→</span></button>
+          <p class="secure-note">✦ Payment is simulated in this student project demo.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="checkoutView" class="checkout-view hidden">
+      <button class="back-link" type="button" data-action="back-shop">← Back to menu</button>
+      <div class="checkout-wrap">
+        <div class="checkout-intro"><p class="eyebrow">ALMOST THERE</p><h1>Let's make<br><em>it yours.</em></h1><p>Enter your details, choose a payment method and place your order.</p></div>
+        <form id="checkoutForm" class="checkout-card" novalidate>
+          <h2>Customer details</h2>
+          <label class="field-label" for="customerName">Your name</label><input id="customerName" required minlength="2" maxlength="70" placeholder="e.g. Ananya Rao" autocomplete="name" />
+          <label class="field-label" for="customerPhone">Mobile number</label><input id="customerPhone" required inputmode="numeric" maxlength="10" placeholder="10-digit Indian mobile number" autocomplete="tel" />
+          <h2 class="payment-heading">Payment method</h2>
+          <div class="payment-methods">
+            <label><input type="radio" name="payment" value="UPI" checked><span>📱</span><b>UPI</b></label>
+            <label><input type="radio" name="payment" value="Card"><span>💳</span><b>Card</b></label>
+            <label><input type="radio" name="payment" value="Cash"><span>💵</span><b>Cash</b></label>
+          </div>
+          <div id="paymentHint" class="payment-hint">Demo mode: UPI payment will be marked as simulated.</div>
+          <div id="formError" class="cancelled hidden"></div>
+          <div class="checkout-total"><span>Amount to pay</span><strong id="checkoutTotal">₹0</strong></div>
+          <button class="checkout-btn" type="submit" id="placeBtn">Pay &amp; place order <span>→</span></button>
+          <p class="secure-note">No real money is charged by this demo website.</p>
+        </form>
+      </div>
+    </section>
+
+    <section id="successView" class="success-view hidden">
+      <div class="success-card">
+        <div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h1>You're all<br><em>set!</em></h1>
+        <p id="successMessage"></p>
+        <div class="token-box"><span>YOUR PICK-UP TOKEN</span><strong id="tokenNumber"></strong><small>Show this token at the counter when collecting your order.</small></div>
+        <div id="receipt"></div>
+        <div class="success-actions"><button class="primary-btn" type="button" data-action="show-orders">Track my order</button><button class="outline-btn" type="button" data-action="new-order">Start a new order</button></div>
+        <p class="sms-note" id="smsNote"></p>
+      </div>
+    </section>
+
+    <section id="ordersView" class="orders-view hidden">
+      <button class="back-link" type="button" data-action="home">← Back to counters</button>
+      <div class="orders-wrap">
+        <p class="eyebrow">TRACK YOUR FOOD</p>
+        <h1>My <em>orders.</em></h1>
+        <p class="muted">Confirmed orders and their token numbers. Status updates automatically when the counter staff change it.</p>
+        <form id="lookupForm" class="lookup" novalidate>
+          <input id="lookupPhone" inputmode="numeric" maxlength="10" placeholder="Mobile number used for the order" />
+          <input id="lookupToken" maxlength="10" placeholder="Token (optional) e.g. CB1001" />
+          <button class="primary-btn" type="submit">Find my orders</button>
+        </form>
+        <div id="ordersList"></div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>

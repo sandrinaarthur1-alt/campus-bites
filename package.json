@@ -1,0 +1,11 @@
+{
+  "name": "campus-bites",
+  "version": "2.0.0",
+  "description": "Campus Bites - Smart Canteen Ordering System (Node.js backend + web front end)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build-images": "node tools/make-images.js"
+  },
+  "engines": { "node": ">=18" }
+}

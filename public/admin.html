@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Bites | Counter staff</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:'DM Sans',Arial,sans-serif;background:#f7f4ed;color:#24211f}
+header{background:#24211f;color:#fff;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:18px;letter-spacing:1.5px}header select,header button{padding:8px 12px;font:inherit;font-size:12px}
+main{padding:22px 5%}.login{max-width:340px;margin:80px auto;background:#fff;border:1px solid #e8e1d7;padding:26px}
+.login input{width:100%;padding:12px;border:1px solid #ddd;margin:12px 0;font:inherit}
+.btn{border:0;background:#24211f;color:#fff;padding:10px 14px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.btn.alt{background:#b85f43}.btn.ghost{background:#fff;color:#9a3426;border:1px solid #e0b3ab}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.col h2{font-size:12px;letter-spacing:1.5px;margin:0 0 10px}.col h2 span{background:#24211f;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px}
+.card{background:#fff;border:1px solid #e8e1d7;padding:14px;margin-bottom:12px;font-size:12px}
+.card .tok{font-size:24px;font-weight:800;letter-spacing:2px}.card .meta{color:#7a736b;margin:4px 0 8px;line-height:1.5}
+.card ul{margin:6px 0;padding-left:18px}.card .acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hist{margin-top:30px}.hist table{width:100%;border-collapse:collapse;background:#fff;font-size:12px}.hist td,.hist th{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}
+.msg{margin:10px 0;font-size:12px;color:#2c6a3a}.err{color:#9a3426}.hidden{display:none!important}
+@media(max-width:800px){.board{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><h1>CAMPUS BITES · COUNTER STAFF</h1>
+  <div id="tools" class="hidden"><select id="outletFilter"><option value="">All counters</option><option value="grains">Grains &amp; Gossips</option><option value="tummy">Tummy Trails</option><option value="truck">Food Truck</option></select>
+  <button id="logout" type="button">Log out</button></div></header>
+<div id="login" class="login"><h2 style="margin:0 0 6px">Staff login</h2><p style="font-size:12px;color:#777;margin:0">Enter the staff PIN (default 1234, set ADMIN_PIN in .env).</p>
+  <form id="loginForm"><input id="pin" type="password" placeholder="Staff PIN" autocomplete="off"><button class="btn" type="submit">Open orders</button></form><div id="loginErr" class="msg err"></div></div>
+<main id="board" class="hidden"><div id="note" class="msg"></div>
+  <div class="board"><div class="col"><h2>NEW · CONFIRMED<span id="c1">0</span></h2><div id="col-Confirmed"></div></div>
+  <div class="col"><h2>PREPARING<span id="c2">0</span></h2><div id="col-Preparing"></div></div>
+  <div class="col"><h2>READY FOR PICK-UP<span id="c3">0</span></h2><div id="col-Ready"></div></div></div>
+  <div class="hist"><h2 style="font-size:12px;letter-spacing:1.5px">COLLECTED / CANCELLED</h2><table><thead><tr><th>Token</th><th>Name</th><th>Counter</th><th>Total</th><th>Status</th></tr></thead><tbody id="history"></tbody></table></div></main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let pin=sessionStorage.getItem("cb_pin")||"",timer=null;
+const NEXT={Confirmed:["Preparing","Start preparing"],Preparing:["Ready","Mark ready"],Ready:["Collected","Mark collected"]};
+async function call(url,opt={}){const r=await fetch(url,{...opt,headers:{...(opt.headers||{}),"x-admin-pin":pin,"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Error "+r.status);return d}
+function card(o){return `<div class="card"><div class="tok">${esc(o.token)}</div>
+ <div class="meta"><b>${esc(o.name)}</b> · ${esc(o.phone)}<br>${esc(o.outletName)} · ${esc(o.orderType)} · ${esc(o.payment)} (${esc(o.paymentStatus)})<br>${new Date(o.createdAt).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}</div>
+ <ul>${o.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>${o.extras.length?`<div>Extras: ${o.extras.map(e=>esc(e.name)).join(", ")}</div>`:""}
+ <div style="margin-top:6px"><b>Total ₹${o.total}</b></div>
+ <div class="acts"><button class="btn alt" data-tok="${esc(o.token)}" data-st="${NEXT[o.status][0]}" type="button">${NEXT[o.status][1]}</button>
+ ${o.status!=="Ready"?`<button class="btn ghost" data-tok="${esc(o.token)}" data-st="Cancelled" type="button">Cancel</button>`:""}</div></div>`}
+async function load(){
+  try{const q=$("outletFilter").value?"?outlet="+$("outletFilter").value:"";const {orders}=await call("/api/admin/orders"+q);
+   $("login").classList.add("hidden");$("board").classList.remove("hidden");$("tools").classList.remove("hidden");
+   ["Confirmed","Preparing","Ready"].forEach((s,i)=>{const l=orders.filter(o=>o.status===s).reverse();$("col-"+s).innerHTML=l.map(card).join("")||'<div class="msg" style="color:#999">Nothing here</div>';$("c"+(i+1)).textContent=l.length});
+   $("history").innerHTML=orders.filter(o=>o.status==="Collected"||o.status==="Cancelled").slice(0,25).map(o=>`<tr><td>${esc(o.token)}</td><td>${esc(o.name)}</td><td>${esc(o.outletName)}</td><td>₹${o.total}</td><td>${esc(o.status)}</td></tr>`).join("");
+   clearInterval(timer);timer=setInterval(load,5000);
+  }catch(e){$("loginErr").textContent=e.message;sessionStorage.removeItem("cb_pin");clearInterval(timer);$("login").classList.remove("hidden");$("board").classList.add("hidden");$("tools").classList.add("hidden")}}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-tok]");if(!b)return;b.disabled=true;
+  try{const r=await call("/api/admin/orders/"+b.dataset.tok,{method:"PATCH",body:JSON.stringify({status:b.dataset.st})});
+   $("note").textContent=`${r.order.token} → ${r.order.status}`+(r.sms?` · SMS: ${r.sms.note}`:"");await load()}catch(x){$("note").textContent=x.message;$("note").className="msg err"}});
+$("loginForm").addEventListener("submit",e=>{e.preventDefault();pin=$("pin").value;sessionStorage.setItem("cb_pin",pin);$("loginErr").textContent="";load()});
+$("outletFilter").addEventListener("change",load);
+$("logout").addEventListener("click",()=>{sessionStorage.removeItem("cb_pin");pin="";clearInterval(timer);location.reload()});
+if(pin)load();
+</script></body></html>
